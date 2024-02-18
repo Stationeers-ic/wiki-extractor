@@ -2,6 +2,7 @@
 using BepInEx;
 using HarmonyLib;
 using UnityEngine;
+using System.IO;
 
 namespace WikiExtractorMod
 {
@@ -26,6 +27,11 @@ namespace WikiExtractorMod
                 var harmony = new Harmony(pluginGuid);
                 harmony.PatchAll();
                 Log("Patch WikiExtractorMod succeeded");
+                string folderPath = Path.Combine(Application.dataPath, "wiki_data");
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
             }
             catch (Exception e)
             {

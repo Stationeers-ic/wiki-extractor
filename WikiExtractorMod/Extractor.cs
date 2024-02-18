@@ -3,6 +3,7 @@ using Assets.Scripts.UI;
 using HarmonyLib;
 using Newtonsoft.Json;
 using UnityEngine;
+using System;
 
 namespace WikiExtractorMod
 {
@@ -22,8 +23,13 @@ namespace WikiExtractorMod
             obj.Add("LogicSlotInsert", page.LogicSlotInsert);
             obj.Add("ModeInsert", page.ModeInsert);
             obj.Add("ConnectionInsert", page.ConnectionInsert);
-            obj.Add("ResourcesUsed", page.ResourcesUsed);
-            obj.Add("BuildStates", page.BuildStates);
+            List<string> images = new List<String>();
+            foreach (var stationBuildCostInsert in page.BuildStates)
+            {
+                string base64String = SpriteToBase64(stationBuildCostInsert.PrinterImage);
+                images.Add(base64String);
+            }
+            obj.Add("images",images);
 
             obj.Add("PrefabName", page.PrefabName);
             obj.Add("PrefabHashString", page.PrefabHashString);
@@ -31,7 +37,7 @@ namespace WikiExtractorMod
             string json = JsonConvert.SerializeObject(obj);
             string path = Path.Combine(
                 Path.Combine(Application.dataPath, "wiki_data"),
-                Application.dataPath, page.Key + ".json"
+                page.Key + ".json"
             );
             using (StreamWriter writer = new StreamWriter(path))
             {
@@ -40,5 +46,23 @@ namespace WikiExtractorMod
 
             ExtractorBepInEx.Log(path);
         }
+
+       public static string SpriteToBase64(Sprite sprite)
+       {
+           RenderTexture renderTexture = RenderTexture.GetTemporary(sprite.texture.width, sprite.texture.height);
+           Graphics.Blit(sprite.texture, renderTexture);
+
+           Texture2D texture = new Texture2D(sprite.texture.width, sprite.texture.height);
+           RenderTexture.active = renderTexture;
+           texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+           texture.Apply();
+
+           byte[] bytes = texture.EncodeToPNG();
+           string base64String = Convert.ToBase64String(bytes);
+
+           RenderTexture.ReleaseTemporary(renderTexture);
+
+           return base64String;
+       }
     }
 }
