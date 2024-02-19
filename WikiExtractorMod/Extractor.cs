@@ -72,6 +72,8 @@ namespace WikiExtractorMod
             obj.Add("BuildStates", ParseBuild(page.BuildStates));
 
             obj.Add("SlotInserts", ParseSlot(page.SlotInserts));
+            
+            obj.Add("StructVersionInsert", ParseStructureVersion(page.StructVersionInsert));
 
             obj.Add("ConstructedThings", ParseCategory(page.ConstructedThings));
             obj.Add("ProducedThingsInserts", ParseCategory(page.ProducedThingsInserts));
@@ -155,6 +157,28 @@ namespace WikiExtractorMod
                 buildState.Add("SlotName", stationCategoryInsert.SlotName);
                 buildState.Add("SlotType", stationCategoryInsert.SlotType);
                 buildState.Add("SlotIndex", stationCategoryInsert.SlotIndex);
+                if (base64String != "")
+                {
+                    buildState.Add("image", base64String);
+                }
+
+                newBuildStates.Add(buildState);
+            }
+
+            return newBuildStates;
+        }
+        public static List<Dictionary<string, dynamic>> ParseStructureVersion(List<StationStructureVersionInsert> buildStates)
+        {
+            List<Dictionary<string, dynamic>> newBuildStates = new List<Dictionary<string, dynamic>>();
+            foreach (var stationCategoryInsert in buildStates)
+            {
+                string base64String = SpriteToBase64(stationCategoryInsert.StructureImage);
+                Dictionary<string, dynamic> buildState = new Dictionary<string, dynamic>();
+                buildState.Add("SlotName", stationCategoryInsert.StructureVersion);
+                buildState.Add("SlotType", stationCategoryInsert.CreationMultiplier);
+                buildState.Add("SlotIndex", stationCategoryInsert.EnergyCostMultiplier);
+                buildState.Add("SlotIndex", stationCategoryInsert.MaterialCostMultiplier);
+                buildState.Add("SlotIndex", stationCategoryInsert.BuildTimeMultiplier);
                 if (base64String != "")
                 {
                     buildState.Add("image", base64String);
