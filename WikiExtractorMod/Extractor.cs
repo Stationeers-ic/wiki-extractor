@@ -174,11 +174,11 @@ namespace WikiExtractorMod
             {
                 string base64String = SpriteToBase64(stationCategoryInsert.StructureImage);
                 Dictionary<string, dynamic> buildState = new Dictionary<string, dynamic>();
-                buildState.Add("SlotName", stationCategoryInsert.StructureVersion);
-                buildState.Add("SlotType", stationCategoryInsert.CreationMultiplier);
-                buildState.Add("SlotIndex", stationCategoryInsert.EnergyCostMultiplier);
-                buildState.Add("SlotIndex", stationCategoryInsert.MaterialCostMultiplier);
-                buildState.Add("SlotIndex", stationCategoryInsert.BuildTimeMultiplier);
+                buildState.Add("StructureVersion", stationCategoryInsert.StructureVersion);
+                buildState.Add("CreationMultiplier", stationCategoryInsert.CreationMultiplier);
+                buildState.Add("EnergyCostMultiplier", stationCategoryInsert.EnergyCostMultiplier);
+                buildState.Add("MaterialCostMultiplier", stationCategoryInsert.MaterialCostMultiplier);
+                buildState.Add("BuildTimeMultiplier", stationCategoryInsert.BuildTimeMultiplier);
                 if (base64String != "")
                 {
                     buildState.Add("image", base64String);
@@ -206,10 +206,9 @@ namespace WikiExtractorMod
                 RenderTexture.ReleaseTemporary(renderTexture);
                 return base64String;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                ExtractorBepInEx.Log(e.Message);
-                return "";
+                return "error";
             }
         }
     }
