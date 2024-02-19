@@ -88,6 +88,11 @@ namespace WikiExtractorMod
                 lang.ToString(),
                 page.Key + ".json"
             );
+            string folderPath = Path.Combine(Application.dataPath, "wiki_data", lang.ToString());
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
             using (StreamWriter writer = new StreamWriter(path))
             {
                 writer.WriteLine(json);
