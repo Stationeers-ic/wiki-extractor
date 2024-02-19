@@ -4,6 +4,7 @@ using HarmonyLib;
 using Newtonsoft.Json;
 using UnityEngine;
 using System;
+using Assets.Scripts;
 
 namespace WikiExtractorMod
 {
@@ -56,6 +57,8 @@ namespace WikiExtractorMod
             obj.Add("PressureBreakText", page.PressureBreakText);
             obj.Add("CableBreakText", page.CableBreakText);
             obj.Add("InternalAtmosInfoText", page.InternalAtmosInfoText);
+            obj.Add("PageCustomCategories", page.PageCustomCategories);
+            obj.Add("CustomSpriteToUse", SpriteToBase64(page.CustomSpriteToUse));
 
             obj.Add("LogicInsert", page.LogicInsert);
             obj.Add("LogicSlotInsert", page.LogicSlotInsert);
@@ -64,19 +67,25 @@ namespace WikiExtractorMod
             obj.Add("FoundInOre", page.FoundInOre);
             obj.Add("FoundInGas", page.FoundInGas);
             obj.Add("LifeRequirements", page.LifeRequirements);
-            
+
             obj.Add("HowToBuild", ParseBuild(page.HowToBuild));
             obj.Add("BuildStates", ParseBuild(page.BuildStates));
-            
-            obj.Add("ConstructedThings", ParseCategory(page. ConstructedThings));
-            obj.Add("ProducedThingsInserts", ParseCategory(page. ProducedThingsInserts));
-            obj.Add("ConstructedByKits", ParseCategory(page. ConstructedByKits));
-            obj.Add("ResourcesUsed", ParseCategory(page. ResourcesUsed));
-            obj.Add("UsedIn", ParseCategory(page. UsedIn));
-            
+
+            obj.Add("SlotInserts", ParseSlot(page.SlotInserts));
+
+            obj.Add("ConstructedThings", ParseCategory(page.ConstructedThings));
+            obj.Add("ProducedThingsInserts", ParseCategory(page.ProducedThingsInserts));
+            obj.Add("ConstructedByKits", ParseCategory(page.ConstructedByKits));
+            obj.Add("ResourcesUsed", ParseCategory(page.ResourcesUsed));
+            obj.Add("UsedIn", ParseCategory(page.UsedIn));
+
             string json = JsonConvert.SerializeObject(obj);
+
+            LanguageCode lang = Localization.CurrentLanguage;
             string path = Path.Combine(
-                Path.Combine(Application.dataPath, "wiki_data"),
+                Application.dataPath,
+                "wiki_data",
+                lang.ToString(),
                 page.Key + ".json"
             );
             using (StreamWriter writer = new StreamWriter(path))
@@ -101,7 +110,7 @@ namespace WikiExtractorMod
                 buildState.Add("PageLink", stationBuildCostInsert.PageLink);
                 if (base64String != "")
                 {
-                    buildState.Add("PrinterImage", base64String);
+                    buildState.Add("image", base64String);
                 }
 
                 newBuildStates.Add(buildState);
@@ -109,6 +118,7 @@ namespace WikiExtractorMod
 
             return newBuildStates;
         }
+
         public static List<Dictionary<string, dynamic>> ParseCategory(List<StationCategoryInsert> buildStates)
         {
             List<Dictionary<string, dynamic>> newBuildStates = new List<Dictionary<string, dynamic>>();
@@ -121,7 +131,28 @@ namespace WikiExtractorMod
                 buildState.Add("PageLink", stationCategoryInsert.PageLink);
                 if (base64String != "")
                 {
-                    buildState.Add("PrinterImage", base64String);
+                    buildState.Add("image", base64String);
+                }
+
+                newBuildStates.Add(buildState);
+            }
+
+            return newBuildStates;
+        }
+
+        public static List<Dictionary<string, dynamic>> ParseSlot(List<StationSlotsInsert> buildStates)
+        {
+            List<Dictionary<string, dynamic>> newBuildStates = new List<Dictionary<string, dynamic>>();
+            foreach (var stationCategoryInsert in buildStates)
+            {
+                string base64String = SpriteToBase64(stationCategoryInsert.SlotIcon);
+                Dictionary<string, dynamic> buildState = new Dictionary<string, dynamic>();
+                buildState.Add("SlotName", stationCategoryInsert.SlotName);
+                buildState.Add("SlotType", stationCategoryInsert.SlotType);
+                buildState.Add("SlotIndex", stationCategoryInsert.SlotIndex);
+                if (base64String != "")
+                {
+                    buildState.Add("image", base64String);
                 }
 
                 newBuildStates.Add(buildState);
@@ -148,6 +179,7 @@ namespace WikiExtractorMod
             }
             catch (Exception e)
             {
+                ExtractorBepInEx.Log(e.Message);
                 return "";
             }
         }
