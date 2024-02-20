@@ -5,6 +5,8 @@ using Newtonsoft.Json;
 using UnityEngine;
 using System;
 using Assets.Scripts;
+using Assets.Scripts.Objects;
+using Objects.Items;
 
 namespace WikiExtractorMod
 {
@@ -57,29 +59,48 @@ namespace WikiExtractorMod
             obj.Add("PressureBreakText", page.PressureBreakText);
             obj.Add("CableBreakText", page.CableBreakText);
             obj.Add("InternalAtmosInfoText", page.InternalAtmosInfoText);
-            obj.Add("PageCustomCategories", page.PageCustomCategories);
+            obj.Add("DrillHeadProperties", page.DrillHeadProperties);
+            obj.Add("GasType", page.GasType);
+            obj.Add("DisplayFilter", page.DisplayFilter);
             obj.Add("CustomSpriteToUse", SpriteToBase64(page.CustomSpriteToUse));
-
+            obj.Add("PageCustomCategories", page.PageCustomCategories);
+            obj.Add("SlotInserts", ParseSlot(page.SlotInserts));
+            obj.Add("HowToBuild", ParseBuild(page.HowToBuild));
+            obj.Add("BuildStates", ParseBuild(page.BuildStates));
+            obj.Add("StructVersionInsert", ParseStructureVersion(page.StructVersionInsert));
             obj.Add("LogicInsert", page.LogicInsert);
             obj.Add("LogicSlotInsert", page.LogicSlotInsert);
             obj.Add("ModeInsert", page.ModeInsert);
             obj.Add("ConnectionInsert", page.ConnectionInsert);
             obj.Add("FoundInOre", page.FoundInOre);
             obj.Add("FoundInGas", page.FoundInGas);
-            obj.Add("LifeRequirements", page.LifeRequirements);
-
-            obj.Add("HowToBuild", ParseBuild(page.HowToBuild));
-            obj.Add("BuildStates", ParseBuild(page.BuildStates));
-
-            obj.Add("SlotInserts", ParseSlot(page.SlotInserts));
-            
-            obj.Add("StructVersionInsert", ParseStructureVersion(page.StructVersionInsert));
-
             obj.Add("ConstructedThings", ParseCategory(page.ConstructedThings));
             obj.Add("ProducedThingsInserts", ParseCategory(page.ProducedThingsInserts));
             obj.Add("ConstructedByKits", ParseCategory(page.ConstructedByKits));
             obj.Add("ResourcesUsed", ParseCategory(page.ResourcesUsed));
             obj.Add("UsedIn", ParseCategory(page.UsedIn));
+            obj.Add("LifeRequirements", page.LifeRequirements);
+
+            try
+            {
+                Thing thing = Prefab.Find(page.PrefabHash);
+                Sprite mainImage = page.CustomSpriteToUse;
+                if (mainImage == null && thing != null)
+                {
+                    mainImage = thing.Thumbnail;
+                }
+
+                if (mainImage == null)
+                {
+                    mainImage = page.BuildStates[page.BuildStates.Count - 1].PrinterImage;
+                }
+
+                obj.Add("MainImage", SpriteToBase64(mainImage));
+            }
+            catch (Exception)
+            {
+                ExtractorBepInEx.Log("Failed to find main image");
+            }
 
             string json = JsonConvert.SerializeObject(obj);
 
@@ -95,6 +116,7 @@ namespace WikiExtractorMod
             {
                 Directory.CreateDirectory(folderPath);
             }
+
             using (StreamWriter writer = new StreamWriter(path))
             {
                 writer.WriteLine(json);
@@ -103,7 +125,7 @@ namespace WikiExtractorMod
             ExtractorBepInEx.Log(path);
         }
 
-        public static List<Dictionary<string, string>> ParseBuild(List<StationBuildCostInsert> buildStates)
+        private static List<Dictionary<string, string>> ParseBuild(List<StationBuildCostInsert> buildStates)
         {
             List<Dictionary<string, string>> newBuildStates = new List<Dictionary<string, string>>();
             foreach (var stationBuildCostInsert in buildStates)
@@ -126,7 +148,7 @@ namespace WikiExtractorMod
             return newBuildStates;
         }
 
-        public static List<Dictionary<string, dynamic>> ParseCategory(List<StationCategoryInsert> buildStates)
+        private static List<Dictionary<string, dynamic>> ParseCategory(List<StationCategoryInsert> buildStates)
         {
             List<Dictionary<string, dynamic>> newBuildStates = new List<Dictionary<string, dynamic>>();
             foreach (var stationCategoryInsert in buildStates)
@@ -147,7 +169,7 @@ namespace WikiExtractorMod
             return newBuildStates;
         }
 
-        public static List<Dictionary<string, dynamic>> ParseSlot(List<StationSlotsInsert> buildStates)
+        private static List<Dictionary<string, dynamic>> ParseSlot(List<StationSlotsInsert> buildStates)
         {
             List<Dictionary<string, dynamic>> newBuildStates = new List<Dictionary<string, dynamic>>();
             foreach (var stationCategoryInsert in buildStates)
@@ -167,7 +189,9 @@ namespace WikiExtractorMod
 
             return newBuildStates;
         }
-        public static List<Dictionary<string, dynamic>> ParseStructureVersion(List<StationStructureVersionInsert> buildStates)
+
+        private static List<Dictionary<string, dynamic>> ParseStructureVersion(
+            List<StationStructureVersionInsert> buildStates)
         {
             List<Dictionary<string, dynamic>> newBuildStates = new List<Dictionary<string, dynamic>>();
             foreach (var stationCategoryInsert in buildStates)
@@ -190,26 +214,32 @@ namespace WikiExtractorMod
             return newBuildStates;
         }
 
-        public static string SpriteToBase64(Sprite sprite)
+        private static string SpriteToBase64(Sprite sprite)
         {
-            try
+            if (sprite == null)
             {
-                RenderTexture renderTexture = RenderTexture.GetTemporary(sprite.texture.width, sprite.texture.height);
-                Graphics.Blit(sprite.texture, renderTexture);
+                ExtractorBepInEx.Log("Sprite is null");
+                return null;
+            }
 
-                Texture2D texture = new Texture2D(sprite.texture.width, sprite.texture.height);
-                RenderTexture.active = renderTexture;
-                texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-                texture.Apply();
-                byte[] bytes = texture.EncodeToPNG();
-                string base64String = Convert.ToBase64String(bytes);
-                RenderTexture.ReleaseTemporary(renderTexture);
-                return base64String;
-            }
-            catch (Exception)
+            if (sprite.texture == null)
             {
-                return "error";
+                ExtractorBepInEx.Log("sprite texture is null");
+                return null;
             }
+
+            RenderTexture renderTexture = new RenderTexture(sprite.texture.width, sprite.texture.height, 0);
+            Graphics.Blit(sprite.texture, renderTexture);
+
+            Texture2D texture = new Texture2D(sprite.texture.width, sprite.texture.height);
+            RenderTexture.active = renderTexture;
+            texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+            texture.Apply();
+
+            byte[] bytes = texture.EncodeToPNG();
+            string base64String = Convert.ToBase64String(bytes);
+
+            return base64String;
         }
     }
 }
