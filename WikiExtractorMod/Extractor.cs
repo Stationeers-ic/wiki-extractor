@@ -15,6 +15,8 @@ namespace WikiExtractorMod
     [HarmonyPatch(typeof(Stationpedia), nameof(Stationpedia.Register))]
     public class Extractor
     {
+        static List<string> _ids = new List<string>();
+
         [HarmonyPrefix]
         public static void Prefix(StationpediaPage page, bool fallback = false)
         {
@@ -80,11 +82,10 @@ namespace WikiExtractorMod
             obj.Add("ResourcesUsed", ParseCategory(page.ResourcesUsed));
             obj.Add("UsedIn", ParseCategory(page.UsedIn));
             obj.Add("LifeRequirements", page.LifeRequirements);
-
+            Sprite mainImage = page.CustomSpriteToUse;
             try
             {
                 Thing thing = Prefab.Find(page.PrefabHash);
-                Sprite mainImage = page.CustomSpriteToUse;
                 if (mainImage == null && thing != null)
                 {
                     mainImage = thing.Thumbnail;
@@ -94,13 +95,43 @@ namespace WikiExtractorMod
                 {
                     mainImage = page.BuildStates[page.BuildStates.Count - 1].PrinterImage;
                 }
-
-                obj.Add("MainImage", SpriteToBase64(mainImage));
             }
             catch (Exception)
             {
                 ExtractorBepInEx.Log("Failed to find main image");
             }
+
+            obj.Add("MainImageName", mainImage.name);
+            obj.Add("MainImage", SpriteToBase64(mainImage));
+
+            string id = page.Key;
+            if (page.PrefabHash != 0)
+            {
+                id = page.PrefabHash.ToString();
+            }
+
+            if (page.ReagentsHash != 0)
+            {
+                id = page.ReagentsHash.ToString();
+            }
+
+            //Крайний случай
+            if (id == page.Key && mainImage != null)
+            {
+                id = mainImage.name;
+            }
+
+            if (!_ids.Contains(id))
+            {
+                _ids.Add(id);
+            }
+            else
+            {
+                id = page.Key;
+                _ids.Add(id);
+            }
+
+            obj.Add("ID", id); //Very unique id
 
             string json = JsonConvert.SerializeObject(obj);
 
@@ -109,7 +140,7 @@ namespace WikiExtractorMod
                 Application.dataPath,
                 "wiki_data",
                 lang.ToString(),
-                page.Key + ".json"
+                id + ".json"
             );
             string folderPath = Path.Combine(Application.dataPath, "wiki_data", lang.ToString());
             if (!Directory.Exists(folderPath))
