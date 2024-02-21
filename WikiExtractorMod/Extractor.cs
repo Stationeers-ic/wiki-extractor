@@ -4,6 +4,8 @@ using HarmonyLib;
 using Newtonsoft.Json;
 using UnityEngine;
 using System;
+using System.Security.Cryptography;
+using System.Text;
 using Assets.Scripts;
 using Assets.Scripts.Objects;
 using Objects.Items;
@@ -11,16 +13,39 @@ using Objects.Items;
 namespace WikiExtractorMod
 {
     using System.Collections.Generic;
+    using System.Security.Cryptography;
 
     [HarmonyPatch(typeof(Stationpedia), nameof(Stationpedia.Register))]
     public class Extractor
     {
-        static List<string> _ids = new List<string>();
+        private static List<string> _ids = new List<string>();
 
         [HarmonyPrefix]
         public static void Prefix(StationpediaPage page, bool fallback = false)
         {
             var obj = new Dictionary<string, dynamic>();
+            string id = page.Key;
+            if (page.PrefabName != null)
+            {
+                id = page.PrefabName;
+            }
+            else if (page.ReagentsHash != 0)
+            {
+                id = page.ReagentsHash.ToString();
+            }
+            else if (page.ReagentsType != null)
+            {
+                id = page.ReagentsType;
+            }
+            else if (page.ReagentsHash != 0)
+            {
+                id = page.ReagentsHash.ToString();
+            }
+            else
+            {
+                ExtractorBepInEx.Log("Warning: skip page" + page.Key);
+            }
+            obj.Add("ID", id); //Very unique id
             obj.Add("Key", page.Key);
             obj.Add("Title", page.Title);
             obj.Add("Description", page.Description);
@@ -82,6 +107,7 @@ namespace WikiExtractorMod
             obj.Add("ResourcesUsed", ParseCategory(page.ResourcesUsed));
             obj.Add("UsedIn", ParseCategory(page.UsedIn));
             obj.Add("LifeRequirements", page.LifeRequirements);
+
             Sprite mainImage = page.CustomSpriteToUse;
             try
             {
@@ -101,38 +127,7 @@ namespace WikiExtractorMod
                 ExtractorBepInEx.Log("Failed to find main image");
             }
 
-            obj.Add("MainImageName", mainImage.name);
             obj.Add("MainImage", SpriteToBase64(mainImage));
-
-            string id = page.Key;
-            if (page.PrefabHash != 0)
-            {
-                id = page.PrefabHash.ToString();
-            }
-
-            if (page.ReagentsHash != 0)
-            {
-                id = page.ReagentsHash.ToString();
-            }
-
-            //Крайний случай
-            if (id == page.Key && mainImage != null)
-            {
-                id = mainImage.name;
-            }
-
-            if (!_ids.Contains(id))
-            {
-                _ids.Add(id);
-            }
-            else
-            {
-                id = page.Key;
-                _ids.Add(id);
-            }
-
-            obj.Add("ID", id); //Very unique id
-
             string json = JsonConvert.SerializeObject(obj);
 
             LanguageCode lang = Localization.CurrentLanguage;
@@ -155,6 +150,7 @@ namespace WikiExtractorMod
 
             ExtractorBepInEx.Log(path);
         }
+
 
         private static List<Dictionary<string, string>> ParseBuild(List<StationBuildCostInsert> buildStates)
         {
@@ -249,13 +245,11 @@ namespace WikiExtractorMod
         {
             if (sprite == null)
             {
-                ExtractorBepInEx.Log("Sprite is null");
                 return null;
             }
 
             if (sprite.texture == null)
             {
-                ExtractorBepInEx.Log("sprite texture is null");
                 return null;
             }
 
@@ -271,6 +265,21 @@ namespace WikiExtractorMod
             string base64String = Convert.ToBase64String(bytes);
 
             return base64String;
+        }
+
+
+        public static byte[] GetHash(string inputString)
+        {
+            using (HashAlgorithm algorithm = MD5.Create())
+                return algorithm.ComputeHash(Encoding.UTF8.GetBytes(inputString));
+        }
+
+        public static string GetHashString(string inputString)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in GetHash(inputString))
+                sb.Append(b.ToString("X2"));
+            return sb.ToString();
         }
     }
 }
