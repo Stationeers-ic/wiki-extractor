@@ -4,6 +4,7 @@ using HarmonyLib;
 using Newtonsoft.Json;
 using UnityEngine;
 using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Assets.Scripts;
@@ -18,34 +19,41 @@ namespace WikiExtractorMod
     [HarmonyPatch(typeof(Stationpedia), nameof(Stationpedia.Register))]
     public class Extractor
     {
-        private static List<string> _ids = new List<string>();
-
         [HarmonyPrefix]
         public static void Prefix(StationpediaPage page, bool fallback = false)
         {
             var obj = new Dictionary<string, dynamic>();
-            string id = page.Key;
+            string prefab = null;
+            var tags = new List<string>();
             if (page.PrefabName != null)
             {
-                id = page.PrefabName;
-            }
-            else if (page.ReagentsHash != 0)
-            {
-                id = page.ReagentsHash.ToString();
+                prefab = page.PrefabName;
+                obj.Add("TYPE", "object");
+                if (prefab.StartsWith("Structure"))
+                {
+                    tags.Add("structure");
+                }
+                else if (prefab.StartsWith("Item"))
+                {
+                    tags.Add("item");
+                }
             }
             else if (page.ReagentsType != null)
             {
-                id = page.ReagentsType;
-            }
-            else if (page.ReagentsHash != 0)
-            {
-                id = page.ReagentsHash.ToString();
+                prefab = page.ReagentsType;
+                obj.Add("TYPE", "reagent");
+                tags.Add("reagent");
             }
             else
             {
-                ExtractorBepInEx.Log("Warning: skip page" + page.Key);
+                ExtractorBepInEx.Log("Warning: is page" + page.Key);
+                obj.Add("TYPE", "page");
+                tags.Add("page");
             }
-            obj.Add("ID", id); //Very unique id
+
+            LanguageCode lang = Localization.CurrentLanguage;
+            obj.Add("prefab", prefab); //Very unique id
+            obj.Add("Lang", lang.ToString()); //Very unique id
             obj.Add("Key", page.Key);
             obj.Add("Title", page.Title);
             obj.Add("Description", page.Description);
@@ -108,13 +116,52 @@ namespace WikiExtractorMod
             obj.Add("UsedIn", ParseCategory(page.UsedIn));
             obj.Add("LifeRequirements", page.LifeRequirements);
 
+            if(page.LogicInsert.Count > 0)
+            {
+                tags.Add("hasLogic");
+            }
+            
+            if(page.SlotInserts.Count > 0)
+            {
+                tags.Add("hasSlot");
+            }
+            if(page.BuildStates.Count > 0)
+            {
+                tags.Add("buildable");
+            }
+            if(page.ModeInsert.Count > 0)
+            {
+                tags.Add("hasMode");
+            }
+            
+            if(page.FoundInOre.Count > 0)
+            {
+                tags.Add("isOre");
+            }
+            if(page.FoundInGas.Count > 0)
+            {
+                tags.Add("isGas");
+            }
+            if(page.PaintableText == "Yes")
+            {
+                tags.Add("paintable");
+            }
+            
+            if(page.ProducedThingsInserts.Count > 0 )
+            {
+                tags.Add("hasReciepe");
+            }
+            
             Sprite mainImage = page.CustomSpriteToUse;
             try
             {
                 Thing thing = Prefab.Find(page.PrefabHash);
                 if (mainImage == null && thing != null)
                 {
-                    mainImage = thing.Thumbnail;
+                    if (mainImage == null)
+                    {
+                        mainImage = thing.GetThumbnail();
+                    }
                 }
 
                 if (mainImage == null)
@@ -128,16 +175,23 @@ namespace WikiExtractorMod
             }
 
             obj.Add("MainImage", SpriteToBase64(mainImage));
+            if (mainImage != null)
+            {
+                tags.Add("hasImage");
+            }
+
+            obj.Add("tags", tags);
+
             string json = JsonConvert.SerializeObject(obj);
 
-            LanguageCode lang = Localization.CurrentLanguage;
             string path = Path.Combine(
                 Application.dataPath,
                 "wiki_data",
                 lang.ToString(),
-                id + ".json"
+                prefab + ".json"
             );
             string folderPath = Path.Combine(Application.dataPath, "wiki_data", lang.ToString());
+
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
@@ -243,6 +297,13 @@ namespace WikiExtractorMod
 
         private static string SpriteToBase64(Sprite sprite)
         {
+            LanguageCode lang = Localization.CurrentLanguage;
+            if (lang != LanguageCode.EN)
+            {
+                // убираем избыточноть в остальных языках 
+                return null;
+            }
+
             if (sprite == null)
             {
                 return null;
