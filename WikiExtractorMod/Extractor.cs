@@ -116,42 +116,51 @@ namespace WikiExtractorMod
             obj.Add("UsedIn", ParseCategory(page.UsedIn));
             obj.Add("LifeRequirements", page.LifeRequirements);
 
-            if(page.LogicInsert.Count > 0)
+            if (page.LogicInsert.Count > 0)
             {
                 tags.Add("hasLogic");
             }
-            
-            if(page.SlotInserts.Count > 0)
+
+            if (page.SlotInserts.Count > 0)
             {
                 tags.Add("hasSlot");
             }
-            if(page.BuildStates.Count > 0)
+
+            if (page.BuildStates.Count > 0)
             {
                 tags.Add("buildable");
             }
-            if(page.ModeInsert.Count > 0)
+
+            if (page.ModeInsert.Count > 0)
             {
                 tags.Add("hasMode");
             }
-            
-            if(page.FoundInOre.Count > 0)
+
+            if (page.FoundInOre.Count > 0)
             {
                 tags.Add("isOre");
             }
-            if(page.FoundInGas.Count > 0)
+
+            if (page.FoundInGas.Count > 0)
             {
                 tags.Add("isGas");
             }
-            if(page.PaintableText == "Yes")
+
+            if (page.PaintableText == "Yes")
             {
                 tags.Add("paintable");
             }
-            
-            if(page.ProducedThingsInserts.Count > 0 )
+
+            if (page.ProducedThingsInserts.Count > 0)
             {
                 tags.Add("hasReciepe");
             }
-            
+
+            if (prefab != null)
+            {
+                tags.Add("hasPrefab");
+            }
+
             Sprite mainImage = page.CustomSpriteToUse;
             try
             {
@@ -181,14 +190,23 @@ namespace WikiExtractorMod
             }
 
             obj.Add("tags", tags);
-
+            string fileName;
+            if (prefab != null)
+            {
+                fileName = prefab;
+            }
+            else
+            {
+                fileName = page.Key;
+            }
+            obj.Add("ID", fileName);
+            fileName += ".json";
             string json = JsonConvert.SerializeObject(obj);
-
             string path = Path.Combine(
                 Application.dataPath,
                 "wiki_data",
                 lang.ToString(),
-                prefab + ".json"
+                fileName
             );
             string folderPath = Path.Combine(Application.dataPath, "wiki_data", lang.ToString());
 
