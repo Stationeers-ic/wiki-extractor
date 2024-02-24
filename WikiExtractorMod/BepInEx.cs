@@ -1,9 +1,11 @@
 ﻿using System;
-using BepInEx;
-using HarmonyLib;
-using UnityEngine;
 using System.IO;
 using Assets.Scripts;
+using Assets.Scripts.Objects.Electrical;
+using BepInEx;
+using HarmonyLib;
+using Newtonsoft.Json;
+using UnityEngine;
 
 namespace WikiExtractorMod
 {
@@ -16,11 +18,6 @@ namespace WikiExtractorMod
         public const string pluginName = "Extractor";
         public const string pluginVersion = "1.1";
 
-        public static void Log(string line)
-        {
-            Debug.Log("[" + pluginName + "]: " + line);
-        }
-
         private void Awake()
         {
             try
@@ -28,18 +25,20 @@ namespace WikiExtractorMod
                 var harmony = new Harmony(pluginGuid);
                 harmony.PatchAll();
                 Log("Patch WikiExtractorMod succeeded");
-                LanguageCode lang = Localization.CurrentLanguage;
-                string folderPath = Path.Combine(Application.dataPath, "wiki_data");
-                if (!Directory.Exists(folderPath))
-                {
-                    Directory.CreateDirectory(folderPath);
-                }
+                var lang = Localization.CurrentLanguage;
+                var folderPath = Path.Combine(Application.dataPath, "wiki_data");
+                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
             }
             catch (Exception e)
             {
                 Log("Patch WikiExtractorMod Failed");
                 Log(e.ToString());
             }
+        }
+
+        public static void Log(string line)
+        {
+            Debug.Log("[" + pluginName + "]: " + line);
         }
     }
 

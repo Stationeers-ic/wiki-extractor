@@ -9,6 +9,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Assets.Scripts;
 using Assets.Scripts.Objects;
+using Assets.Scripts.Objects.Electrical;
+using Assets.Scripts.Objects.Pipes;
 using Objects.Items;
 
 namespace WikiExtractorMod
@@ -19,9 +21,12 @@ namespace WikiExtractorMod
     [HarmonyPatch(typeof(Stationpedia), nameof(Stationpedia.Register))]
     public class Extractor
     {
+        public static int idx = 0;
+
         [HarmonyPrefix]
         public static void Prefix(StationpediaPage page, bool fallback = false)
         {
+            idx++;
             var obj = new Dictionary<string, dynamic>();
             string prefab = null;
             var tags = new List<string>();
@@ -124,6 +129,14 @@ namespace WikiExtractorMod
             if (page.SlotInserts.Count > 0)
             {
                 tags.Add("hasSlot");
+                foreach (var slotInsert in page.SlotInserts)
+                {
+                    if (slotInsert.SlotType == "ProgrammableChip")
+                    {
+                        tags.Add("hasChip");
+                        break;
+                    }
+                }
             }
 
             if (page.BuildStates.Count > 0)
@@ -161,15 +174,36 @@ namespace WikiExtractorMod
                 tags.Add("hasPrefab");
             }
 
+            int deviceConnectCount = 0;
             Sprite mainImage = page.CustomSpriteToUse;
             try
             {
                 Thing thing = Prefab.Find(page.PrefabHash);
-                if (mainImage == null && thing != null)
+                if (thing != null)
                 {
                     if (mainImage == null)
                     {
                         mainImage = thing.GetThumbnail();
+                    }
+
+                    if (tags.Contains("hasChip"))
+                    {
+                        foreach (var slot in thing.Slots)
+                        {
+                            if (slot.Type == Slot.Class.ProgrammableChip)
+                            {
+                                if (thing is CircuitHousing)
+                                {
+                                    deviceConnectCount = 6;
+                                }
+                                else if (thing is DeviceInputOutputCircuit)
+                                {
+                                    deviceConnectCount = 2;
+                                }
+
+                                break;
+                            }
+                        }
                     }
                 }
 
@@ -183,6 +217,7 @@ namespace WikiExtractorMod
                 ExtractorBepInEx.Log("Failed to find main image");
             }
 
+            obj.Add("DeviceConnectCount", deviceConnectCount);
             obj.Add("MainImage", SpriteToBase64(mainImage));
             if (mainImage != null)
             {
@@ -199,6 +234,7 @@ namespace WikiExtractorMod
             {
                 fileName = page.Key;
             }
+
             obj.Add("ID", fileName);
             fileName += ".json";
             string json = JsonConvert.SerializeObject(obj);
@@ -219,7 +255,6 @@ namespace WikiExtractorMod
             {
                 writer.WriteLine(json);
             }
-
             ExtractorBepInEx.Log(path);
         }
 
