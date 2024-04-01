@@ -14,24 +14,42 @@ namespace WikiExtractorMod
 {
     [HarmonyPatch(typeof(Stationpedia), nameof(Stationpedia.Register))]
     public class Extractor
-    {
+	{
+
         [HarmonyPrefix]
         public static bool Prefix(StationpediaPage page, bool fallback = false)
         {
-            var obj = new Dictionary<string, dynamic>();
+
+		
+
+			var obj = new Dictionary<string, dynamic>();
             string prefab = null;
             var tags = new List<string>();
             if (page.PrefabName != null)
             {
                 prefab = page.PrefabName;
                 obj.Add("TYPE", "object");
-                if (prefab.StartsWith("Structure"))
-                    tags.Add("structure");
+                if (prefab.StartsWith("Structure"))tags.Add("structure");
                 else if (prefab.StartsWith("Item")) tags.Add("item");
+                else if (prefab.StartsWith("AccessCard")) tags.Add("item");
+				else if (prefab.EndsWith("Ingot")) tags.Add("ingot");
+				//"Tool",
+				//"Plant",
+				else if (prefab.EndsWith("Ore")) tags.Add("Ore");
+				else if (prefab.Contains("Battery") && prefab.Contains("Cell")) tags.Add("Battery");
+				else if (prefab == "ItemIntegratedCircuit10") tags.Add("ProgrammableChip");
+				else if (prefab.EndsWith("Cartridge")) tags.Add("Cartridge");
+				else if (prefab.Contains("GasCanister")) tags.Add("GasCanister");
+				else if (prefab.Contains("GasFilter")) tags.Add("GasFilter");
+				else if (prefab.StartsWith("Motherboard")) tags.Add("Motherboard");
+				else if (prefab.Contains("Disk")) tags.Add("DataDisk");
+				else if (prefab.Contains("Circuitboard")) tags.Add("Circuitboard");
+				else if (prefab.StartsWith("Entity")) tags.Add("Entity");
+				else if (prefab.EndsWith("Helmet")) tags.Add("Helmet");
+				else if (prefab.Contains("Jetpack") || prefab.Contains("Backpack")) tags.Add("Back");
+				else if (prefab.EndsWith("Suit")) tags.Add("Suit");
 
-                if (prefab.EndsWith("Ingot")) tags.Add("ingot");
-
-                if (prefab.StartsWith("ItemKit")) tags.Add("kit");
+				if (prefab.StartsWith("ItemKit")) tags.Add("kit");
 
                 if (prefab.StartsWith("StructureCable")) tags.Add("cable");
             }
@@ -47,6 +65,8 @@ namespace WikiExtractorMod
                 obj.Add("TYPE", "page");
                 tags.Add("page");
             }
+
+
 
 
             if (page.LogicInsert.Count > 0) tags.Add("hasLogic");

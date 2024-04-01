@@ -1,0 +1,92 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|c:\\users\\kirill\\riderprojects\\wikiextractormod\\wikiextractormod\\packages.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|solutionrelative:wikiextractormod\\packages.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|c:\\users\\kirill\\riderprojects\\wikiextractormod\\wikiextractormod\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|solutionrelative:wikiextractormod\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|c:\\users\\kirill\\riderprojects\\wikiextractormod\\wikiextractormod\\bepinex.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|solutionrelative:wikiextractormod\\bepinex.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|c:\\users\\kirill\\riderprojects\\wikiextractormod\\wikiextractormod\\extractor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|solutionrelative:wikiextractormod\\extractor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{269a02dc-6af8-11d3-bdc4-00c04f688e50}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "packages.config",
+              "DocumentMoniker": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\packages.config",
+              "RelativeDocumentMoniker": "WikiExtractorMod\\packages.config",
+              "ToolTip": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\packages.config",
+              "RelativeToolTip": "WikiExtractorMod\\packages.config",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2024-04-01T18:07:00.29Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "App.config",
+              "DocumentMoniker": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\App.config",
+              "RelativeDocumentMoniker": "WikiExtractorMod\\App.config",
+              "ToolTip": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\App.config",
+              "RelativeToolTip": "WikiExtractorMod\\App.config",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2024-04-01T18:06:55.035Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "BepInEx.cs",
+              "DocumentMoniker": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\BepInEx.cs",
+              "RelativeDocumentMoniker": "WikiExtractorMod\\BepInEx.cs",
+              "ToolTip": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\BepInEx.cs",
+              "RelativeToolTip": "WikiExtractorMod\\BepInEx.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-01T18:06:52.923Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Extractor.cs",
+              "DocumentMoniker": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\Extractor.cs",
+              "RelativeDocumentMoniker": "WikiExtractorMod\\Extractor.cs",
+              "ToolTip": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\Extractor.cs",
+              "RelativeToolTip": "WikiExtractorMod\\Extractor.cs",
+              "ViewState": "AQIAABwAAAAAAAAAAAAcwCQAAAAHAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-01T17:27:34.008Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
