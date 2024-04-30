@@ -7,6 +7,7 @@ using Assets.Scripts.UI;
 using BepInEx;
 using HarmonyLib;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -190,7 +191,7 @@ namespace WikiExtractorMod
 				if (XmlSerialization.Deserialize(xmlSerializer, EnLangPath) is Localization.Language EN)
 				{
 					var language = new Localization.Language();
-
+				
 					Type type = EN.GetType();
 					FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -221,8 +222,7 @@ namespace WikiExtractorMod
 						{
 							field.SetValue(language, replaceSPDAHomePageButtonOverride(val6));
 						}
-						else
-						{
+						else {
 							field.SetValue(language, value);
 						}
 					}
@@ -232,10 +232,9 @@ namespace WikiExtractorMod
 					try
 					{
 						Localization.GetLanguages();
-					}
-					catch (Exception e)
+					}catch (Exception e)
 					{
-						Log(e.ToString());
+						Log( e.ToString());
 					}
 					Localization.SetLanguage(LanguageCode.AA, true);
 					return Path.Combine(Application.streamingAssetsPath, "Language");
