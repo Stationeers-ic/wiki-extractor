@@ -1,12 +1,16 @@
 ﻿using Assets.Scripts;
+using Assets.Scripts.Atmospherics;
 using Assets.Scripts.Objects;
 using Assets.Scripts.Objects.Electrical;
+using Assets.Scripts.Objects.Entities;
+using Assets.Scripts.Objects.Motherboards;
 using Assets.Scripts.Objects.Pipes;
 using Assets.Scripts.Serialization;
 using Assets.Scripts.UI;
 using BepInEx;
 using HarmonyLib;
 using Newtonsoft.Json;
+using Objects.Rockets;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,7 +33,8 @@ namespace WikiExtractorMod
 	{
 		public const string pluginGuid = "net.elmo.stationeers.Extractor";
 		public const string pluginName = "Extractor";
-		public const string pluginVersion = "1.4";
+		public const string pluginVersion = "1.5";
+
 
 		private void Awake()
 		{
@@ -52,12 +57,10 @@ namespace WikiExtractorMod
 				Log(e.ToString());
 			}
 		}
-
 		public static void Log(string line)
 		{
 			Debug.Log("[" + pluginName + "]: " + line);
 		}
-
 		public static void SaveJson(string name, object obj, string folder = "wiki_data")
 		{
 			var lang = Localization.CurrentLanguage;
@@ -164,10 +167,16 @@ namespace WikiExtractorMod
 
 			public override string Execute(string[] args)
 			{
+				var data = new Dictionary<string, Dictionary<string, dynamic>>();
+
 				foreach (var page in Stationpedia.StationpediaPages)
 				{
-					Parcer.process(page);
+					var a = Parcer.process(page);
+					data.Add(a.name, a.obj);
+
 				}
+				ExtractorBepInEx.SaveJson("data", data);
+				GetConstants.process();
 				return Path.Combine(Application.dataPath, "wiki_data");
 			}
 		}
@@ -300,7 +309,18 @@ namespace WikiExtractorMod
 
 		public class Parcer
 		{
-			public static void process(StationpediaPage page, string folder = "wiki_data")
+			public class Resonnse
+			{
+				public string name;
+				public Dictionary<string, dynamic> obj;
+
+				public Resonnse(string name, Dictionary<string, dynamic> obj)
+				{
+					this.name = name;
+					this.obj = obj;
+				}
+			}
+			public static Resonnse process(StationpediaPage page, string folder = "wiki_data")
 			{
 				var obj = new Dictionary<string, dynamic>();
 				string prefab = null;
@@ -347,6 +367,7 @@ namespace WikiExtractorMod
 				}
 
 				if (page.LogicInsert.Count > 0) tags.Add("hasLogic");
+				if (page.LogicInstructions.Count > 0) tags.Add("hasLogicInstructions");
 
 				if (page.SlotInserts.Count > 0)
 				{
@@ -427,12 +448,13 @@ namespace WikiExtractorMod
 				obj.Add("HowToBuild", ParseBuild(page.HowToBuild));
 				obj.Add("BuildStates", ParseBuild(page.BuildStates));
 				obj.Add("StructVersionInsert", ParseStructureVersion(page.StructVersionInsert));
-				obj.Add("LogicInsert", page.LogicInsert);
-				obj.Add("LogicSlotInsert", page.LogicSlotInsert);
-				obj.Add("ModeInsert", page.ModeInsert);
-				obj.Add("ConnectionInsert", page.ConnectionInsert);
-				obj.Add("FoundInOre", page.FoundInOre);
-				obj.Add("FoundInGas", page.FoundInGas);
+				obj.Add("LogicInsert", ParseLogic(page.LogicInsert));
+				obj.Add("LogicSlotInsert", ParseLogic(page.LogicSlotInsert));
+				obj.Add("LogicInstructions", ParseLogicInstructions(page.LogicInstructions));
+				obj.Add("ModeInsert", ParseLogic(page.ModeInsert));
+				obj.Add("ConnectionInsert", ParseLogic(page.ConnectionInsert));
+				obj.Add("FoundInOre", ParseFound(page.FoundInOre));
+				obj.Add("FoundInGas", ParseFound(page.FoundInGas));
 				obj.Add("ConstructedThings", ParseCategory(page.ConstructedThings));
 				obj.Add("ProducedThingsInserts", ParseCategory(page.ProducedThingsInserts));
 				obj.Add("ConstructedByKits", ParseCategory(page.ConstructedByKits));
@@ -480,8 +502,54 @@ namespace WikiExtractorMod
 					fileName = page.Key;
 
 				obj.Add("ID", fileName);
+				var __tmp = new Dictionary<string, dynamic>();
+				foreach (var val in obj)
+				{
+					if (val.Value is String value)
+					{
+						__tmp.Add(val.Key, TextMeshProParcer.Parce(value));
+					}
+				}
+				foreach (var val in __tmp)
+				{
+					obj[val.Key] = val.Value;
+				}
 
-				ExtractorBepInEx.SaveJson(fileName, obj);
+				return new Resonnse(fileName, obj);
+			}
+
+			private static List<Dictionary<string, dynamic>> ParseLogic(List<StationLogicInsert> data)
+			{
+				var result = new List<Dictionary<string, dynamic>>();
+				foreach (var value in data)
+				{
+					var obj = new Dictionary<string, dynamic>();
+					obj.Add("LogicName", TextMeshProParcer.Parce(value.LogicName));
+					obj.Add("LogicAccessTypes", TextMeshProParcer.Parce(value.LogicAccessTypes));
+					result.Add(obj);
+				}
+
+				return result;
+			}
+			private static List<Dictionary<string, dynamic>> ParseFound(List<StationFoundInInsert> data)
+			{
+				var result = new List<Dictionary<string, dynamic>>();
+				foreach (var value in data)
+				{
+					var obj = new Dictionary<string, dynamic>();
+					obj.Add("NameOfThing", TextMeshProParcer.Parce(value.NameOfThing));
+					if (Int32.TryParse(value.QuantityOfThing, out int e))
+					{
+						obj.Add("QuantityOfThing", e);
+					}
+					else
+					{
+						obj.Add("QuantityOfThing", value.QuantityOfThing);
+					}
+					result.Add(obj);
+				}
+
+				return result;
 			}
 
 			private static List<Dictionary<string, string>> ParseBuild(List<StationBuildCostInsert> buildStates)
@@ -491,14 +559,29 @@ namespace WikiExtractorMod
 				{
 					var base64String = ExtractorBepInEx.SpriteToFile(stationBuildCostInsert.PrinterImage);
 					var buildState = new Dictionary<string, string>();
-					buildState.Add("PrinterName", stationBuildCostInsert.PrinterName);
-					buildState.Add("TierName", stationBuildCostInsert.TierName);
-					buildState.Add("Details", stationBuildCostInsert.Details);
-					buildState.Add("Description", stationBuildCostInsert.Description);
-					buildState.Add("PageLink", stationBuildCostInsert.PageLink);
+					buildState.Add("PrinterName", TextMeshProParcer.Parce(stationBuildCostInsert.PrinterName));
+					buildState.Add("TierName", TextMeshProParcer.Parce(stationBuildCostInsert.TierName));
+					buildState.Add("Details", TextMeshProParcer.Parce(stationBuildCostInsert.Details));
+					buildState.Add("Description", TextMeshProParcer.Parce(stationBuildCostInsert.Description));
+					buildState.Add("PageLink", TextMeshProParcer.Parce(stationBuildCostInsert.PageLink));
 					if (base64String != "") buildState.Add("image", base64String);
 
 					newBuildStates.Add(buildState);
+				}
+
+				return newBuildStates;
+			}
+
+			private static List<Dictionary<string, string>> ParseLogicInstructions(List<StationInstruction> data)
+			{
+				var newBuildStates = new List<Dictionary<string, string>>();
+				foreach (var value in data)
+				{
+					var obj = new Dictionary<string, string>();
+					obj.Add("Text", TextMeshProParcer.Parce(value.Text));
+					obj.Add("Index", TextMeshProParcer.Parce(value.Index));
+					obj.Add("Info", TextMeshProParcer.Parce(value.Info));
+					newBuildStates.Add(obj);
 				}
 
 				return newBuildStates;
@@ -511,9 +594,9 @@ namespace WikiExtractorMod
 				{
 					var base64String = ExtractorBepInEx.SpriteToFile(stationCategoryInsert.InsertImage);
 					var buildState = new Dictionary<string, dynamic>();
-					buildState.Add("NameOfThing", stationCategoryInsert.NameOfThing);
+					buildState.Add("NameOfThing", TextMeshProParcer.Parce(stationCategoryInsert.NameOfThing));
 					buildState.Add("PrefabHash", stationCategoryInsert.PrefabHash);
-					buildState.Add("PageLink", stationCategoryInsert.PageLink);
+					buildState.Add("PageLink", TextMeshProParcer.Parce(stationCategoryInsert.PageLink));
 					if (base64String != "") buildState.Add("image", base64String);
 
 					newBuildStates.Add(buildState);
@@ -529,9 +612,9 @@ namespace WikiExtractorMod
 				{
 					var base64String = ExtractorBepInEx.SpriteToFile(stationCategoryInsert.SlotIcon);
 					var buildState = new Dictionary<string, dynamic>();
-					buildState.Add("SlotName", stationCategoryInsert.SlotName);
-					buildState.Add("SlotType", stationCategoryInsert.SlotType);
-					buildState.Add("SlotIndex", stationCategoryInsert.SlotIndex);
+					buildState.Add("SlotName", TextMeshProParcer.Parce(stationCategoryInsert.SlotName));
+					buildState.Add("SlotType", TextMeshProParcer.Parce(stationCategoryInsert.SlotType));
+					buildState.Add("SlotIndex", TextMeshProParcer.Parce(stationCategoryInsert.SlotIndex));
 					if (base64String != "") buildState.Add("image", base64String);
 
 					newBuildStates.Add(buildState);
@@ -540,19 +623,18 @@ namespace WikiExtractorMod
 				return newBuildStates;
 			}
 
-			private static List<Dictionary<string, dynamic>> ParseStructureVersion(
-				List<StationStructureVersionInsert> buildStates)
+			private static List<Dictionary<string, dynamic>> ParseStructureVersion(List<StationStructureVersionInsert> buildStates)
 			{
 				var newBuildStates = new List<Dictionary<string, dynamic>>();
 				foreach (var stationCategoryInsert in buildStates)
 				{
 					var base64String = ExtractorBepInEx.SpriteToFile(stationCategoryInsert.StructureImage);
 					var buildState = new Dictionary<string, dynamic>();
-					buildState.Add("StructureVersion", stationCategoryInsert.StructureVersion);
-					buildState.Add("CreationMultiplier", stationCategoryInsert.CreationMultiplier);
-					buildState.Add("EnergyCostMultiplier", stationCategoryInsert.EnergyCostMultiplier);
-					buildState.Add("MaterialCostMultiplier", stationCategoryInsert.MaterialCostMultiplier);
-					buildState.Add("BuildTimeMultiplier", stationCategoryInsert.BuildTimeMultiplier);
+					buildState.Add("StructureVersion", TextMeshProParcer.Parce(stationCategoryInsert.StructureVersion));
+					buildState.Add("CreationMultiplier", TextMeshProParcer.Parce(stationCategoryInsert.CreationMultiplier));
+					buildState.Add("EnergyCostMultiplier", TextMeshProParcer.Parce(stationCategoryInsert.EnergyCostMultiplier));
+					buildState.Add("MaterialCostMultiplier", TextMeshProParcer.Parce(stationCategoryInsert.MaterialCostMultiplier));
+					buildState.Add("BuildTimeMultiplier", TextMeshProParcer.Parce(stationCategoryInsert.BuildTimeMultiplier));
 					if (base64String != "") buildState.Add("image", base64String);
 
 					newBuildStates.Add(buildState);
@@ -569,6 +651,133 @@ namespace WikiExtractorMod
 				}
 			}
 		}
+
+		public class GetConstants
+		{
+			public class ConstEnum
+			{
+				public Type enumType;
+				public string prefix = null;
+
+				public ConstEnum(Type enumType, string prefix)
+				{
+					this.enumType = enumType;
+					this.prefix = prefix;
+				}
+			}
+
+			public static void process()
+			{
+				var constDictionary = new Dictionary<string, Dictionary<string, dynamic>>();
+				var consts = new Dictionary<string, dynamic>();
+				var enums = new List<ConstEnum>();
+
+				enums.Add(new ConstEnum(typeof(LogicType), null));
+				enums.Add(new ConstEnum(typeof(LogicSlotType), null));
+				enums.Add(new ConstEnum(typeof(LogicReagentMode), null));
+				enums.Add(new ConstEnum(typeof(LogicBatchMethod), null));
+				enums.Add(new ConstEnum(typeof(SoundAlert), "Sound"));
+				enums.Add(new ConstEnum(typeof(LogicTransmitterMode), "TransmitterMode"));
+				enums.Add(new ConstEnum(typeof(ElevatorMode), "ElevatorMode"));
+				enums.Add(new ConstEnum(typeof(ColorType), "Color"));
+				enums.Add(new ConstEnum(typeof(EntityState), "EntityState"));
+				enums.Add(new ConstEnum(typeof(AirControlMode), "AirControl"));
+				enums.Add(new ConstEnum(typeof(DaylightSensor.DaylightSensorMode), "DaylightSensorMode"));
+				enums.Add(new ConstEnum(typeof(ConditionOperation), null));
+				enums.Add(new ConstEnum(typeof(AirConditioningMode), "AirCon"));
+				enums.Add(new ConstEnum(typeof(VentDirection), "Vent"));
+				enums.Add(new ConstEnum(typeof(PowerMode), "PowerMode"));
+				enums.Add(new ConstEnum(typeof(RobotMode), "RobotMode"));
+				enums.Add(new ConstEnum(typeof(SortingClass), "SortingClass"));
+				enums.Add(new ConstEnum(typeof(Slot.Class), "SlotClass"));
+				enums.Add(new ConstEnum(typeof(Chemistry.GasType), "GasType"));
+				enums.Add(new ConstEnum(typeof(RocketMode), "GasType"));
+				enums.Add(new ConstEnum(typeof(ReEntryProfile), "ReEntryProfile"));
+				enums.Add(new ConstEnum(typeof(SorterInstruction), "SorterInstruction"));
+
+				foreach (var constant in ProgrammableChip.AllConstants)
+				{
+					var obj = new Dictionary<string, dynamic>();
+					obj.Add("literal", constant.Literal);
+					obj.Add("name", ProgrammableChip.StripColorTags(constant.GetName()));
+					obj.Add("value", constant.Value);
+					obj.Add("referenceType", "Constant");
+					obj.Add("depricated", false);
+					obj.Add("description", ProgrammableChip.StripColorTags(constant.Description));
+					constDictionary.Add(constant.Literal, obj);
+					consts.Add(constant.Literal, constant.Value);
+				}
+
+				foreach (var eType in enums)
+				{
+					try
+					{
+						foreach (var value in Enum.GetValues(eType.enumType))
+						{
+							var obj = new Dictionary<string, dynamic>();
+							var name = value.ToString();
+							if (eType.prefix != null)
+							{
+								name = eType.prefix + '.' + value.ToString();
+							}
+							bool depricated = false;
+
+
+							if (value is LogicType e)
+							{
+								depricated = LogicBase.IsDeprecated(e);
+							}
+							else if
+								(value is LogicSlotType e1)
+							{
+								depricated = LogicBase.IsDeprecated(e1);
+							}
+							else if (value is LogicReagentMode e2)
+							{
+								depricated = LogicBase.IsDeprecated(e2);
+							}
+							else if (value is LogicBatchMethod e3)
+							{
+								depricated = LogicBase.IsDeprecated(e3);
+							}
+							else if (value is SoundAlert e4)
+							{
+								depricated = LogicBase.IsDeprecated(e4);
+							}
+
+							obj.Add("literal", name);
+							obj.Add("name", name);
+							obj.Add("referenceType", "Enum");
+							obj.Add("description", "");
+							obj.Add("depricated", depricated);
+							if (eType.prefix != null)
+							{
+								consts.Add(name, value);
+							}
+							if (!constDictionary.ContainsKey(name))
+							{
+								constDictionary.Add(name, obj);
+							}
+							else
+							{
+								constDictionary[name]["depricated"] = depricated;
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						Log("⚠ [" + eType.prefix + "]" + e.ToString());
+					}
+
+
+				}
+
+
+				ExtractorBepInEx.SaveJson("constants", constDictionary, "wiki_constant");
+				ExtractorBepInEx.SaveJson("consts", consts, "wiki_constant");
+			}
+		}
+
 	}
 
 	#endregion
