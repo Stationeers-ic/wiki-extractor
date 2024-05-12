@@ -7,11 +7,7 @@
       "RelativeMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|solutionrelative:wikiextractormod\\bepinex.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|c:\\users\\kirill\\riderprojects\\wikiextractormod\\wikiextractormod\\extractor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|solutionrelative:wikiextractormod\\extractor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|c:\\users\\kirill\\riderprojects\\wikiextractormod\\wikiextractormod\\textmeshproparcer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\wikiextractormod\\textmeshproparcer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8E9A9EE2-1EE9-4EC0-89F1-4950EA33B8F9}|WikiExtractorMod\\WikiExtractorMod.csproj|solutionrelative:wikiextractormod\\textmeshproparcer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -22,26 +18,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Extractor.cs",
-              "DocumentMoniker": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\Extractor.cs",
-              "RelativeDocumentMoniker": "WikiExtractorMod\\Extractor.cs",
-              "ToolTip": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\Extractor.cs",
-              "RelativeToolTip": "WikiExtractorMod\\Extractor.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAABAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-05-04T17:13:46.334Z",
-              "IsPinned": true,
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -50,20 +28,20 @@
               "RelativeDocumentMoniker": "WikiExtractorMod\\BepInEx.cs",
               "ToolTip": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\BepInEx.cs",
               "RelativeToolTip": "WikiExtractorMod\\BepInEx.cs",
-              "ViewState": "AQIAACIAAAAAAAAAAAAAADEAAAAvAAAA",
+              "ViewState": "AQIAALMBAAAAAAAAAAAYwNIBAAAbAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-05-04T17:13:42.708Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "TextMeshProParcer.cs",
               "DocumentMoniker": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\TextMeshProParcer.cs",
               "RelativeDocumentMoniker": "WikiExtractorMod\\TextMeshProParcer.cs",
               "ToolTip": "C:\\Users\\Kirill\\RiderProjects\\WikiExtractorMod\\WikiExtractorMod\\TextMeshProParcer.cs",
               "RelativeToolTip": "WikiExtractorMod\\TextMeshProParcer.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABoAAAAvAAAA",
+              "ViewState": "AQIAACoAAAAAAAAAAAAwwEUAAAAKAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-05-04T17:13:37.696Z",
               "EditorCaption": ""

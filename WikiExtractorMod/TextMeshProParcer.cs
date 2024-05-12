@@ -1,4 +1,7 @@
-﻿namespace WikiExtractorMod
+﻿using ReverseMarkdown;
+using System.Text.RegularExpressions;
+
+namespace WikiExtractorMod
 {
 	internal class TextMeshProParcer
 	{
@@ -38,6 +41,35 @@
 			result = result.Replace("</indent>", "</span>");
 
 			return result;
+		}
+
+		public static string Markdown(string text) { 
+			var html = TextMeshProParcer.Parce(text);
+			var config = new ReverseMarkdown.Config
+			{
+				// Include the unknown tag completely in the result (default as well)
+				UnknownTags = Config.UnknownTagsOption.Drop,
+				// generate GitHub flavoured markdown, supported for BR, PRE and table tags
+				GithubFlavored = true,
+				// will ignore all comments
+				RemoveComments = true,
+				// remove markdown output for links where appropriate
+				SmartHrefHandling = false
+			};
+			var converter = new ReverseMarkdown.Converter(config);
+			var markdown = converter.Convert(html);
+			return markdown;
+		}
+
+		public static string RawText(string text)
+		{
+			var html = TextMeshProParcer.Parce(text);
+			return RemoveHtmlTags(html);
+		}
+
+		private static string RemoveHtmlTags(string html)
+		{
+			return Regex.Replace(html, "<.*?>", string.Empty);
 		}
 	}
 }
