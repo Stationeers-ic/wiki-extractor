@@ -49,6 +49,7 @@ namespace WikiExtractorMod
 				var folderPath = Path.Combine(Application.dataPath, "wiki_data");
 				if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
 
+				CommandLine.AddCommand("stationpedia_export_all", new StationpediaExportAllCommand());
 				CommandLine.AddCommand("stationpedia_export", new StationpediaExportCommand());
 
 				CommandLine.AddCommand("generate_dev_lang", new GenerateDevLangCommand());
@@ -69,7 +70,7 @@ namespace WikiExtractorMod
 				Debug.Log("[" + pluginName + "]: " + line);
 			}
 		}
-		public static void SaveJson(string name, object obj, string folder = "wiki_data")
+		public static void SaveJson(string name, object obj, string folder = "wiki_data/source/languages")
 		{
 			var lang = Localization.CurrentLanguage;
 			name += ".json";
@@ -91,10 +92,10 @@ namespace WikiExtractorMod
 		}
 		public static string GetHashFromByteArray(byte[] data)
 		{
-			using (SHA256 sha256Hash = SHA256.Create())
+			using (var Hash = MD5.Create())
 			{
 				// ComputeHash - возвращает байтовый массив
-				byte[] bytes = sha256Hash.ComputeHash(data);
+				byte[] bytes = Hash.ComputeHash(data);
 
 				// Преобразуем байтовый массив в строку
 				StringBuilder builder = new StringBuilder();
@@ -105,21 +106,21 @@ namespace WikiExtractorMod
 				return builder.ToString();
 			}
 		}
-		public static string SavePng(string name, byte[] bytes, string folder = "wiki_data/images")
+		public static string SavePng(string name, byte[] bytes, string folder = "wiki_data/source/images")
 		{
 			name += ".png";
-			var path = Path.Combine(
-				Application.dataPath,
-				folder,
-				name
-			);
-			if (File.Exists(path)) return name;
-			var folderPath = Path.Combine(Application.dataPath, folder);
+			var firstLetter = name.Substring(0, 1);
+			var SecondLetter = name.Substring(1, 1);
+			var folderPath = Path.Combine(folder, firstLetter, SecondLetter);
+			var filePath = Path.Combine(folderPath, name);
+			var path = Path.Combine(Application.dataPath, filePath);
 
-			if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+			if (File.Exists(path)) return name;
+			var f = Path.Combine(Application.dataPath, folderPath);
+			if (!Directory.Exists(f)) Directory.CreateDirectory(f);
 
 			File.WriteAllBytes(path, bytes);
-			return name;
+			return filePath;
 		}
 		public static string SpriteToBase64(Sprite sprite)
 		{
@@ -145,13 +146,18 @@ namespace WikiExtractorMod
 
 			return base64String;
 		}
+
+		public static Dictionary<int, string> ImageHash = new Dictionary<int,string>();
+
 		public static string SpriteToFile(Sprite sprite)
 		{
 			if (sprite == null) return null;
-
 			if (sprite.texture == null) return null;
 
-
+			if (ImageHash.ContainsKey(sprite.GetHashCode()))
+			{
+				return ImageHash[sprite.GetHashCode()];
+			}
 			var renderTexture = new RenderTexture(sprite.texture.width, sprite.texture.height, 0);
 			Graphics.Blit(sprite.texture, renderTexture);
 
@@ -162,7 +168,31 @@ namespace WikiExtractorMod
 
 			byte[] bytes = texture.EncodeToPNG();
 			string fileName = GetHashFromByteArray(bytes);
-			return SavePng(fileName, bytes);
+
+			string path = SavePng(fileName, bytes); ;
+			ImageHash.Add(sprite.GetHashCode(), path);
+			return path;
+		}
+
+		class StationpediaExportAllCommand : CommandBase
+		{
+			public override string HelpText => "Export Stationpedia in ALL language";
+
+			public override string[] Arguments { get; } = new string[] { };
+
+			public override bool IsLaunchCmd { get; }
+			public override string Execute(string[] args)
+			{
+				foreach (var item in Localization.LanguageData)
+                {
+					Log("Exporting FOR LANGUAGE: " + item.Key);
+					Localization.SetLanguage(item.Key, true);
+					Log("Exporting start: " + item.Key);
+					StationpediaExportCommand.Run();
+					Log("saved: (" + ImageHash.Count.ToString()+")");
+				}
+				return "DONE";
+			}
 		}
 
 		class StationpediaExportCommand : CommandBase
@@ -175,6 +205,10 @@ namespace WikiExtractorMod
 
 			public override string Execute(string[] args)
 			{
+				return Run();
+			}
+
+			public static string Run(){
 				Log("----------------------GetData--------------------------");
 				GetData.process();
 				Log("----------------------GetConstants--------------------------");
@@ -577,8 +611,8 @@ namespace WikiExtractorMod
 					var consts = new Dictionary<string, dynamic>();
 					var enums = new List<ConstEnum>();
 
-					enums.Add(new ConstEnum(typeof(LogicType), null));
-					enums.Add(new ConstEnum(typeof(LogicSlotType), null));
+					//enums.Add(new ConstEnum(typeof(LogicType), null));
+					//enums.Add(new ConstEnum(typeof(LogicSlotType), null));
 					enums.Add(new ConstEnum(typeof(LogicReagentMode), null));
 					enums.Add(new ConstEnum(typeof(LogicBatchMethod), null));
 					enums.Add(new ConstEnum(typeof(SoundAlert), "Sound"));
@@ -627,7 +661,6 @@ namespace WikiExtractorMod
 								}
 								bool depricated = false;
 
-
 								if (value is LogicType e)
 								{
 									depricated = LogicBase.IsDeprecated(e);
@@ -655,9 +688,12 @@ namespace WikiExtractorMod
 								obj.Add("referenceType", "Enum");
 								obj.Add("description", "");
 								obj.Add("depricated", depricated);
-								if (eType.prefix != null)
+								if (!consts.ContainsKey(name))
 								{
 									consts.Add(name, value);
+								}
+								else {
+									consts[name] = value;
 								}
 								if (!constDictionary.ContainsKey(name))
 								{
