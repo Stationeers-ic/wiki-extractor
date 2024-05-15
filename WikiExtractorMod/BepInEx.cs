@@ -52,7 +52,7 @@ namespace WikiExtractorMod
 				CommandLine.AddCommand("stationpedia_export_all", new StationpediaExportAllCommand());
 				CommandLine.AddCommand("stationpedia_export", new StationpediaExportCommand());
 
-				CommandLine.AddCommand("generate_dev_lang", new GenerateDevLangCommand());
+				//CommandLine.AddCommand("generate_dev_lang", new GenerateDevLangCommand()); Больше не актуально
 			}
 			catch (Exception e)
 			{
@@ -209,15 +209,15 @@ namespace WikiExtractorMod
 			}
 
 			public static string Run(){
-				Log("----------------------GetData--------------------------");
+				Log("----------------------GetData----------------------");
 				GetData.process();
-				Log("----------------------GetConstants--------------------------");
+				Log("----------------------GetConstants-----------------");
 				GetConstants.process();
-				Log("----------------------GetColors--------------------------");
+				Log("----------------------GetColors--------------------");
 				GetColors.process();
-				Log("----------------------GetCommands--------------------------");
+				Log("----------------------GetCommands------------------");
 				GetCommands.process();
-				Log("----------------------DONE--------------------------");
+				Log("----------------------DONE-------------------------");
 				return Path.Combine(Application.dataPath, "wiki_data");
 			}
 
@@ -466,7 +466,6 @@ namespace WikiExtractorMod
 
 					return result;
 				}
-
 				private static List<Dictionary<string, string>> ParseBuild(List<StationBuildCostInsert> buildStates)
 				{
 					var newBuildStates = new List<Dictionary<string, string>>();
@@ -486,7 +485,6 @@ namespace WikiExtractorMod
 
 					return newBuildStates;
 				}
-
 				private static List<Dictionary<string, dynamic>> ParseLogicInstructions(List<StationInstruction> data)
 				{
 					var newBuildStates = new List<Dictionary<string, dynamic>>();
@@ -509,7 +507,6 @@ namespace WikiExtractorMod
 
 					return newBuildStates;
 				}
-
 				private static List<Dictionary<string, dynamic>> ParseCategory(List<StationCategoryInsert> buildStates)
 				{
 					var newBuildStates = new List<Dictionary<string, dynamic>>();
@@ -527,7 +524,6 @@ namespace WikiExtractorMod
 
 					return newBuildStates;
 				}
-
 				private static List<Dictionary<string, dynamic>> ParseSlot(List<StationSlotsInsert> buildStates)
 				{
 					var newBuildStates = new List<Dictionary<string, dynamic>>();
@@ -545,7 +541,6 @@ namespace WikiExtractorMod
 
 					return newBuildStates;
 				}
-
 				private static List<Dictionary<string, dynamic>> ParseStructureVersion(List<StationStructureVersionInsert> buildStates)
 				{
 					var newBuildStates = new List<Dictionary<string, dynamic>>();
@@ -565,7 +560,6 @@ namespace WikiExtractorMod
 
 					return newBuildStates;
 				}
-
 				public static byte[] GetHash(string inputString)
 				{
 					using (HashAlgorithm algorithm = MD5.Create())
